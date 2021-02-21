@@ -2,6 +2,15 @@
 # ML_CS7641_SPR21
 Git Repository
 
+# How to run
+
+![Folder_Struct](/img/FolderStructure.PNG)
+![Input_Dir](/img/InputDirectory.PNG)
+![Output_Dir](/img/OutputDirectory.PNG)
+
+note: Files only tested in Windows 10 (my linux box died in the middle of hw  :*())
+Known issues: some older pickle files had an incorrect name (if you did mode.name)
+
 
 # References
 DataSetReferences:
