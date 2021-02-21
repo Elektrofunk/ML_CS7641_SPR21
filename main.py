@@ -33,12 +33,12 @@ random.seed(10)
 
 def test_model(model, xTest, yTest):
     test_report = {}
-    model.set_test_predict_predictions(sxTest, yTest)
-    model.plot_confusion_matrix(self, multi=False, title='test_'+model.name)
+    model.set_test_predict_predictions(xTest, yTest)
+    model.plot_confusion_matrix(multi=False, title='test_'+model.name)
     model.plot_roc_curve(title='test_'+model.name)
-    report.update(
-        dict(zip(['test_accuracy', 'test_precision', 'test_recall', 'test_f1_score'],  model.plot_confusion_matrix(self, multi=False, title='test_'+model.name))))
-    report.update(dict(zip(['test_false_positive_ratio', 'test_true_positive_ratio', 'test_thresholds', 'test_auc'],
+    test_report.update(
+        dict(zip(['test_accuracy', 'test_precision', 'test_recall', 'test_f1_score'],  model.plot_confusion_matrix( multi=False, title='test_'+model.name))))
+    test_report.update(dict(zip(['test_false_positive_ratio', 'test_true_positive_ratio', 'test_thresholds', 'test_auc'],
                            model.plot_roc_curve(title='test_'+model.name))))
     return test_report
 
@@ -198,25 +198,27 @@ if __name__ == "__main__":
     test_report_list =[]
     type = 'wine'
     run_dict = {'parser':
-                    {'type': type, 'run': False, 'pickle': type+'_parser.pickle'},
+                    {'type': type, 'run': True, 'pickle': type+'_parser.pickle'},
                 'vanilla_tree':
-                    {'run': True, 'pickle': type+'_vanilla_tree.pickle', 'name': 'vanilla_tree', 'test': False},
+                    {'run': False, 'pickle': type+'_vanilla_tree.pickle', 'name': 'vanilla_tree', 'test': False},
                 'grid_tree':
-                    {'run': False, 'pickle':  type+'_grid_tree.pickle', 'name': 'grid_tree', 'test': False},
+                    {'run': True, 'pickle':  type+'_grid_tree.pickle', 'name': 'grid_tree', 'test': False},
+                'grid_tree2':
+                    {'run': True, 'pickle': type + '_grid_tree2.pickle', 'name': 'grid_tree2', 'test': False},
                 'vanilla_knn':
                     {'run': False, 'pickle': type+'_vanilla_knn.pickle', 'name': 'vanilla_knn', 'test': False},
                 'grid_knn':
-                    {'run': False, 'pickle':  type+'_grid_knn.pickle', 'name': 'grid_knn', 'test': False},
+                    {'run': True, 'pickle':  type+'_grid_knn.pickle', 'name': 'grid_knn', 'test': False},
                 'vanilla_ann':
                     {'run': False, 'pickle':  type+'_vanilla_ann.pickle', 'name': 'vanilla_ann', 'test': False},
                 'grid_ann':
-                    {'run': False, 'pickle':  type+'_grid_ann.pickle', 'name': 'grid_ann', 'test': False},
+                    {'run': True, 'pickle':  type+'_grid_ann.pickle', 'name': 'grid_ann', 'test': False},
                 'grid_boost':
                     {'run': False, 'pickle':  type+'_grid_boost.pickle', 'name': 'grid_boost', 'test': False},
                 'grid_svm':
-                    {'run': False, 'pickle':  type+'_grid_svm.pickle', 'name': 'grid_svm', 'test': False},
+                    {'run': True, 'pickle':  type+'_grid_svm.pickle', 'name': 'grid_svm', 'test': False},
                 'grid_svm2':
-                    {'run': False, 'pickle':  type+'_grid_svm2.pickle', 'name': 'grid_svm2', 'test': False}
+                    {'run': True, 'pickle':  type+'_grid_svm2.pickle', 'name': 'grid_svm2', 'test': False}
                 }
     if run_dict['parser']['run']:
 
@@ -255,7 +257,8 @@ if __name__ == "__main__":
         # 1.1. Test vanilla tree
         # name1 = 'vanilla_tree'
         params = {'random_state': 10}
-        rprt, vanilla_tree = evaluate_algo(DecisionTreeClassifier(**params), params, parser_mushroom,
+        dt = DecisionTreeClassifier(**params)
+        rprt, vanilla_tree = evaluate_algo(dt, params, parser_mushroom,
                                            run_dict['vanilla_tree']['name'], multi=multi)
         report_list.append({**rprt, **data_wrangling})
         vanilla_tree.set_report({**rprt, **data_wrangling})
@@ -280,16 +283,21 @@ if __name__ == "__main__":
             {'criterion': ["gini", "entropy"], 'ccp_alpha': ccp_alphas[:-1], 'splitter': ["best", "random"],
              'random_state': [10]}
         ]
+        # param_grid = [
+        #         {'criterion': ["gini"], 'max_depth': [2], 'splitter': ["random"],
+        #          'random_state': [10]}
+        #     ]
+
         params, grid_time, grid_search_tree = general_grid_search(DecisionTreeClassifier(), param_grid,
                                                                   parser_mushroom.XTrain, parser_mushroom.yTrain)
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_tree']['name'] + '_SEARCH',
                         grid_search_tree)
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_tree']['name'] + '_SEARCH_TIME',
                         grid_time)
-        name2 = 'grid_search_tree'
-        rprt, grid_tree = evaluate_algo(DecisionTreeClassifier(), params, parser_mushroom,
+        # name2 = 'grid_search_tree'
+        rprt, grid_tree = evaluate_algo(DecisionTreeClassifier(**params), params, parser_mushroom,
                                         run_dict['grid_tree']['name'], multi=multi)
-        model_list[run_dict['grid_tree']['name']] = grid_tree
+        model_list[run_dict['grid_tree']['name']] = run_dict['grid_tree']['name']
         report_list.append(rprt)
         grid_tree.set_report(rprt)
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_tree']['name'], grid_tree)
@@ -301,12 +309,36 @@ if __name__ == "__main__":
             test_report_list.append(test_model(grid_tree, parser_mushroom.XTest,  parser_mushroom.yTest))
         report_list.append(grid_tree.get_report())
     # SECTION 2: Evaluate KNN
-
+    # if (run_dict['grid_tree2']['run']):
+    #
+    #     param_grid = [
+    #         {'criterion': ["gini", "entropy"], 'max_depth': [2,4,8,16,32,64,128], 'splitter': ["random"],
+    #          'random_state': [10]}
+    #     ]
+    #     params, grid_time, grid_search_tree = general_grid_search(DecisionTreeClassifier(), param_grid,
+    #                                                               parser_mushroom.XTrain, parser_mushroom.yTrain)
+    #     pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_tree2']['name'] + '_SEARCH',
+    #                     grid_search_tree)
+    #     pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_tree2']['name'] + '_SEARCH_TIME',
+    #                     grid_time)
+    #     rprt, grid_tree2 = evaluate_algo(DecisionTreeClassifier(), params, parser_mushroom,
+    #                                     run_dict['grid_tree2']['name'], multi=multi)
+    #     model_list[run_dict['grid_tree2']['name']] = run_dict['grid_tree2']['name']
+    #     report_list.append(rprt)
+    #     grid_tree2.set_report(rprt)
+    #     pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_tree2']['name'], grid_tree2)
+    # elif run_dict['grid_tree2']['pickle'] is not None:
+    #     path = os.path.join(os.getcwd(), 'input', run_dict['parser']['type'], run_dict['grid_tree2']['pickle'])
+    #     print(path)
+    #     grid_tree2 = pickle.load(open(path, 'rb'))
+    #     if run_dict['grid_tree2']['test']:
+    #         test_report_list.append(test_model(grid_tree2, parser_mushroom.XTest,  parser_mushroom.yTest))
+    #     report_list.append(grid_tree2.get_report())
     if (run_dict['vanilla_knn']['run']):
         # 2.1 Vanilla KNN
         # name3 = 'vanilla_knn'
         params = {'random_state': 10}
-        rprt, vanilla_knn = evaluate_algo(DecisionTreeClassifier(), params, parser_mushroom,
+        rprt, vanilla_knn = evaluate_algo(KNeighborsClassifier(), params, parser_mushroom,
                                           run_dict['vanilla_knn']['name'], multi=multi)
         model_list[run_dict['vanilla_knn']['name']] = vanilla_knn
         report_list.append(rprt)
@@ -338,7 +370,7 @@ if __name__ == "__main__":
                         grid_search_knn)
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_knn']['name'] + '_SEARCH_TIME',
                         grid_time)
-        rprt, grid_knn = evaluate_algo(DecisionTreeClassifier(), params, parser_mushroom, run_dict['grid_knn']['name'],
+        rprt, grid_knn = evaluate_algo(KNeighborsClassifier(**params), params, parser_mushroom, run_dict['grid_knn']['name'],
                                        multi=multi)
         model_list[run_dict['grid_knn']['name']] = grid_knn
         report_list.append(rprt)
@@ -388,7 +420,7 @@ if __name__ == "__main__":
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_ann']['name'] + '_SEARCH_TIME',
                         grid_time)
         print(run_dict['grid_ann']['name']+"params:", params)
-        rprt, grid_ann = evaluate_algo(MLPClassifier(max_iter=10000), params, parser_mushroom,
+        rprt, grid_ann = evaluate_algo(MLPClassifier(**params), params, parser_mushroom,
                                        run_dict['grid_ann']['name'], multi=multi)
         model_list[run_dict['grid_ann']['name']] = grid_ann
         report_list.append(rprt)
@@ -418,7 +450,7 @@ if __name__ == "__main__":
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_boost']['name'] + '_SEARCH_TIME',
                         grid_time)
         print("best params:", params)
-        rprt, grid_boosting = evaluate_algo(GradientBoostingClassifier(), params, parser_mushroom,
+        rprt, grid_boosting = evaluate_algo(GradientBoostingClassifier(**params), params, parser_mushroom,
                                             run_dict['grid_boost']['name'], multi=multi)
         model_list[run_dict['grid_boost']['name']] = grid_boosting
         report_list.append(rprt)
@@ -430,32 +462,32 @@ if __name__ == "__main__":
         print(path)
         grid_boosting = pickle.load(open(path, 'rb'))
         if run_dict['grid_boost']['test']:
-            test_report_list.append(test_model(grid_boost, parser_mushroom.XTest,  parser_mushroom.yTest))
+            test_report_list.append(test_model(grid_boosting, parser_mushroom.XTest,  parser_mushroom.yTest))
         report_list.append(grid_boosting.get_report())
-    if run_dict['grid_svm']['run']:
-        param_grid = [
-            {'kernel': ["linear", "poly", "rbf", "sigmoid"], 'shrinking': [True, False], 'probability': [True, False]}
-        ]
-        params, grid_time, grid_search_svc = general_grid_search(SVC(), param_grid, parser_mushroom.XTrain,
-                                                                 parser_mushroom.yTrain)
-        pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_svm']['name'] + '_SEARCH',
-                        grid_search_svc)
-        pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_svm']['name'] + '_SEARCH_TIME',
-                        grid_time)
-        print("best params:", params)
-        rprt, grid_svc = evaluate_algo(GradientBoostingClassifier(), params, parser_mushroom,
-                                       run_dict['grid_svm']['name'], multi=multi)
-        model_list[run_dict['grid_svm']['name']] = grid_svc
-        report_list.append(rprt)
-        grid_svc.set_report(rprt)
-        pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_svm']['name'], grid_svc)
-    elif run_dict['grid_svm']['pickle'] is not None:
-        path = os.path.join(os.getcwd(), 'input', run_dict['parser']['type'], run_dict['grid_svm']['pickle'])
-        print(path)
-        grid_svc = pickle.load(open(path, 'rb'))
-        if run_dict['grid_svm']['test']:
-            test_report_list.append(test_model(grid_svc, parser_mushroom.XTest,  parser_mushroom.yTest))
-        report_list.append(grid_svc.get_report())
+    # if run_dict['grid_svm']['run']:
+    #     param_grid = [
+    #         {'kernel': ["linear", "poly", "rbf", "sigmoid"], 'shrinking': [True, False], 'probability': [True, False]}
+    #     ]
+    #     params, grid_time, grid_search_svc = general_grid_search(SVC(), param_grid, parser_mushroom.XTrain,
+    #                                                              parser_mushroom.yTrain)
+    #     pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_svm']['name'] + '_SEARCH',
+    #                     grid_search_svc)
+    #     pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_svm']['name'] + '_SEARCH_TIME',
+    #                     grid_time)
+    #     print("best params:", params)
+    #     rprt, grid_svc = evaluate_algo(GradientBoostingClassifier(**params), params, parser_mushroom,
+    #                                    run_dict['grid_svm']['name'], multi=multi)
+    #     model_list[run_dict['grid_svm']['name']] = grid_svc
+    #     report_list.append(rprt)
+    #     grid_svc.set_report(rprt)
+    #     pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_svm']['name'], grid_svc)
+    # elif run_dict['grid_svm']['pickle'] is not None:
+    #     path = os.path.join(os.getcwd(), 'input', run_dict['parser']['type'], run_dict['grid_svm']['pickle'])
+    #     print(path)
+    #     grid_svc = pickle.load(open(path, 'rb'))
+    #     if run_dict['grid_svm']['test']:
+    #         test_report_list.append(test_model(grid_svc, parser_mushroom.XTest,  parser_mushroom.yTest))
+    #     report_list.append(grid_svc.get_report())
 
     if run_dict['grid_svm2']['run']:
         param_grid = [{'kernel': ["rbf"],
@@ -468,7 +500,7 @@ if __name__ == "__main__":
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_svm2']['name'] + '_SEARCH_TIME',
                         grid_time)
         print("best params:", params)
-        rprt, grid_svc2 = evaluate_algo(GradientBoostingClassifier(), params, parser_mushroom,
+        rprt, grid_svc2 = evaluate_algo(SVC(**params), params, parser_mushroom,
                                         run_dict['grid_svm2']['name'], multi=multi)
         model_list[run_dict['grid_svm']['name']] = grid_svc2
         report_list.append(rprt)
