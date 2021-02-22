@@ -29,7 +29,7 @@ import time
 reportObj = None
 import random
 
-random.seed(10)
+np.random.seed(42)
 
 def test_model(model, xTest, yTest):
     test_report = {}
@@ -54,9 +54,9 @@ def general_grid_search(estimator, params, X, y, multi=False):
         scoring = 'f1_macro'
     else:
         scoring = 'neg_mean_squared_error'
-
+#neg_mean_squared_error
     grid_search = GridSearchCV(estimator, params, cv=5,
-                               scoring='neg_mean_squared_error',
+                               scoring='accuracy',
                                return_train_score=True, n_jobs=-1, verbose=False)
 
     grid_search.fit(X, y.values.ravel(order='C'))
@@ -111,7 +111,7 @@ def do_data_wrangling_for_wine():
     data_wrangling = {'data_set_name': 'wine'}
     data_wrangling['scale_data'] = True
     data_wrangling['remove_outliers'] = False
-    data_wrangling['over_sample'] = False
+    data_wrangling['over_sample'] = True
     data_wrangling['random_state'] = 0
     if data_wrangling['data_set_name'] is 'thyroid':
         data_wrangling['label_name'] = 'target'
@@ -148,9 +148,9 @@ def do_data_wrangling_for_wine():
 
 def do_data_wrangling_for_thyroid():
     data_wrangling = {'data_set_name': 'thyroid'}
-    data_wrangling['scale_data'] = False
+    data_wrangling['scale_data'] = True
     data_wrangling['remove_outliers'] = False
-    data_wrangling['over_sample'] = False
+    data_wrangling['over_sample'] = True
     data_wrangling['random_state'] = 0
     if data_wrangling['data_set_name'] is 'thyroid':
         data_wrangling['label_name'] = 'target'
@@ -198,27 +198,27 @@ if __name__ == "__main__":
     test_report_list =[]
     type = 'wine'
     run_dict = {'parser':
-                    {'type': type, 'run': True, 'pickle': type+'_parser.pickle'},
+                    {'type': type, 'run': False, 'pickle': type+'_parser.pickle'},
                 'vanilla_tree':
-                    {'run': False, 'pickle': type+'_vanilla_tree.pickle', 'name': 'vanilla_tree', 'test': False},
+                    {'run': False, 'playback': False, 'pickle': type+'_vanilla_tree.pickle', 'name': 'vanilla_tree', 'test': False},
                 'grid_tree':
-                    {'run': True, 'pickle':  type+'_grid_tree.pickle', 'name': 'grid_tree', 'test': False},
+                    {'run': False,'playback': False, 'pickle':  type+'_grid_tree.pickle', 'name': 'grid_tree', 'test': False},
                 'grid_tree2':
-                    {'run': True, 'pickle': type + '_grid_tree2.pickle', 'name': 'grid_tree2', 'test': False},
+                    {'run': False, 'playback': False,'pickle': type + '_grid_tree2.pickle', 'name': 'grid_tree2', 'test': False},
                 'vanilla_knn':
-                    {'run': False, 'pickle': type+'_vanilla_knn.pickle', 'name': 'vanilla_knn', 'test': False},
+                    {'run': False,'playback': False, 'pickle': type+'_vanilla_knn.pickle', 'name': 'vanilla_knn', 'test': False},
                 'grid_knn':
-                    {'run': True, 'pickle':  type+'_grid_knn.pickle', 'name': 'grid_knn', 'test': False},
+                    {'run': False,'playback': True, 'pickle':  type+'_grid_knn.pickle', 'name': 'grid_knn', 'test': True},
                 'vanilla_ann':
-                    {'run': False, 'pickle':  type+'_vanilla_ann.pickle', 'name': 'vanilla_ann', 'test': False},
+                    {'run': False, 'playback': False,'pickle':  type+'_vanilla_ann.pickle', 'name': 'vanilla_ann', 'test': False},
                 'grid_ann':
-                    {'run': True, 'pickle':  type+'_grid_ann.pickle', 'name': 'grid_ann', 'test': False},
+                    {'run': False, 'playback': False,'pickle':  type+'_grid_ann.pickle', 'name': 'grid_ann', 'test': False},
                 'grid_boost':
-                    {'run': False, 'pickle':  type+'_grid_boost.pickle', 'name': 'grid_boost', 'test': False},
+                    {'run': False,'playback': False, 'pickle':  type+'_grid_boost.pickle', 'name': 'grid_boost', 'test': False},
                 'grid_svm':
-                    {'run': True, 'pickle':  type+'_grid_svm.pickle', 'name': 'grid_svm', 'test': False},
+                    {'run': False, 'playback': False,'pickle':  type+'_grid_svm.pickle', 'name': 'grid_svm', 'test': False},
                 'grid_svm2':
-                    {'run': True, 'pickle':  type+'_grid_svm2.pickle', 'name': 'grid_svm2', 'test': False}
+                    {'run': False,'playback': True, 'pickle':  type+'_grid_svm2.pickle', 'name': 'grid_svm2', 'test': True}
                 }
     if run_dict['parser']['run']:
 
@@ -264,7 +264,7 @@ if __name__ == "__main__":
         vanilla_tree.set_report({**rprt, **data_wrangling})
         model_list[run_dict['vanilla_tree']['name']] = vanilla_tree
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['vanilla_tree']['name'], vanilla_tree)
-    elif run_dict['vanilla_tree']['pickle'] is not None:
+    elif run_dict['vanilla_tree']['playback']:
         path = os.path.join(os.getcwd(), 'input', run_dict['parser']['type'], run_dict['vanilla_tree']['pickle'])
         print(path)
         vanilla_tree = pickle.load(open(path, 'rb'))
@@ -301,7 +301,7 @@ if __name__ == "__main__":
         report_list.append(rprt)
         grid_tree.set_report(rprt)
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_tree']['name'], grid_tree)
-    elif run_dict['grid_tree']['pickle'] is not None:
+    elif run_dict['grid_tree']['playback']:
         path = os.path.join(os.getcwd(), 'input', run_dict['parser']['type'], run_dict['grid_tree']['pickle'])
         print(path)
         grid_tree = pickle.load(open(path, 'rb'))
@@ -344,7 +344,7 @@ if __name__ == "__main__":
         report_list.append(rprt)
         vanilla_knn.set_report(rprt)
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['vanilla_knn']['name'], vanilla_knn)
-    elif run_dict['vanilla_knn']['pickle'] is not None:
+    elif run_dict['vanilla_knn']['playback']:
         path = os.path.join(os.getcwd(), 'input', run_dict['parser']['type'], run_dict['vanilla_knn']['pickle'])
         print(path)
         vanilla_knn = pickle.load(open(path, 'rb'))
@@ -356,13 +356,13 @@ if __name__ == "__main__":
         # name4 = 'grid_knn'
         if multi == False:
             param_grid = [
-                {'n_neighbors': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], 'p': [1, 2],
-                 'algorithm': ['ball_tree', 'kd_tree'], 'leaf_size': [2, 10, 20]}
+                {'n_neighbors': [4,5,7,9,14], 'p': [1, 2],}
+                 # 'algorithm': ['ball_tree', 'kd_tree'], 'leaf_size': [2, 10, 20]}
             ]
         else:
             # need to deal with one hot encoding
             param_grid = [
-                {'n_neighbors': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]}]
+                {'n_neighbors': [ 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]}]
 
         params, grid_time, grid_search_knn = general_grid_search(KNeighborsClassifier(), param_grid,
                                                                  parser_mushroom.XTrain, parser_mushroom.yTrain)
@@ -376,7 +376,7 @@ if __name__ == "__main__":
         report_list.append(rprt)
         grid_knn.set_report(rprt)
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_knn']['name'], grid_knn)
-    elif run_dict['grid_knn']['pickle'] is not None:
+    elif run_dict['grid_knn']['playback']:
         path = os.path.join(os.getcwd(), 'input', run_dict['parser']['type'], run_dict['grid_knn']['pickle'])
         print(path)
         grid_knn = pickle.load(open(path, 'rb'))
@@ -389,14 +389,15 @@ if __name__ == "__main__":
         # # 3 Neural Network
         #
         # 3.1 Vanilla ANN
-        params = {'random_state': 10}
-        rprt, vanilla_ann = evaluate_algo(MLPClassifier(max_iter=10000), params, parser_mushroom,
+        params = {'random_state': 10, 'activation': 'tanh', 'solver': 'sgd', 'learning_rate': 'constant', 'learning_rate_init': .0008, 'max_iter': 10000
+                  , 'hidden_layer_sizes': (32,16,8)}
+        rprt, vanilla_ann = evaluate_algo(MLPClassifier(**params), params, parser_mushroom,
                                           run_dict['vanilla_ann']['name'], multi=multi)
         model_list[run_dict['vanilla_ann']['name']] = vanilla_ann
         report_list.append(rprt)
         vanilla_ann.set_report(rprt)
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['vanilla_ann']['name'], vanilla_ann)
-    elif run_dict['vanilla_ann']['pickle'] is not None:
+    elif run_dict['vanilla_ann']['playback']:
         path = os.path.join(os.getcwd(), 'input', run_dict['parser']['type'], run_dict['vanilla_ann']['pickle'])
         print(path)
         vanilla_ann = pickle.load(open(path, 'rb'))
@@ -407,9 +408,9 @@ if __name__ == "__main__":
         param_grid = [
             {'hidden_layer_sizes': [(6,), (12,), (24,), (6, 3), (12, 3), (12, 6)],
              'solver': ['sgd', 'adam'],
-             'alpha': [.000001, .000020, .0001, .001],
+             'alpha': [.000001, .000020, .0001, .001, .01, 0.1],
              'learning_rate': ['invscaling'],
-             'momentum': [0, .02, .1],
+             'momentum': [0, .02, .1 ,  .9],
              'early_stopping': [True], }
         ]
 
@@ -427,7 +428,7 @@ if __name__ == "__main__":
         grid_ann.set_report(rprt)
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_ann']['name'], grid_ann)
 
-    elif run_dict['grid_ann']['pickle'] is not None:
+    elif run_dict['grid_ann']['playback']:
         path = os.path.join(os.getcwd(), 'input', run_dict['parser']['type'], run_dict['grid_ann']['pickle'])
         print(path)
         grid_ann = pickle.load(open(path, 'rb'))
@@ -437,11 +438,12 @@ if __name__ == "__main__":
     if run_dict['grid_boost']['run']:
         param_grid = [
             {'criterion': ['friedman_mse'],
-             'n_estimators': [100, 200, 300],
-             'subsample': [.2, .5, .8, 1],
-             'tol': [.00005, .0001, .0002],
-             'max_depth': [2, 4, 8, 16]}
-        ]
+             'n_estimators': [800],
+             'learning_rate': [.01],}]
+        #      'subsample': [.2, .5, .8, 1],
+        #      'tol': [.00005, .0001, .001],
+        #      'max_depth': [2, 4, 8, 16]}
+        # ]
 
         params, grid_time, grid_search_boosting = general_grid_search(GradientBoostingClassifier(), param_grid,
                                                                       parser_mushroom.XTrain, parser_mushroom.yTrain)
@@ -457,7 +459,7 @@ if __name__ == "__main__":
         grid_boosting.set_report(rprt)
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_boost']['name'], grid_boosting)
 
-    elif run_dict['grid_boost']['pickle'] is not None:
+    elif run_dict['grid_boost']['playback']:
         path = os.path.join(os.getcwd(), 'input', run_dict['parser']['type'], run_dict['grid_boost']['pickle'])
         print(path)
         grid_boosting = pickle.load(open(path, 'rb'))
@@ -491,8 +493,8 @@ if __name__ == "__main__":
 
     if run_dict['grid_svm2']['run']:
         param_grid = [{'kernel': ["rbf"],
-                       'gamma': [.1, .5, 1, 2, 4],
-                       'C': [.001, .01, .1, 1, 10, 100, 1000], }]
+                       'gamma': [.001, .005, .002, .5, .3, .5, 1, 2, 4],
+                       'C': [.001, .01, .08, 1, 5, 10, 100, 1000], }]
         params, grid_time, grid_search_svc2 = general_grid_search(SVC(), param_grid, parser_mushroom.XTrain,
                                                                   parser_mushroom.yTrain)
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_svm2']['name'] + '_SEARCH',
@@ -506,7 +508,7 @@ if __name__ == "__main__":
         report_list.append(rprt)
         grid_svc2.set_report(rprt)
         pickle_and_move(data_wrangling['data_set_name'] + '_' + run_dict['grid_svm2']['name'], grid_svc2)
-    elif run_dict['grid_svm2']['pickle'] is not None:
+    elif run_dict['grid_svm2']['playback']:
         path = os.path.join(os.getcwd(), 'input', run_dict['parser']['type'], run_dict['grid_svm2']['pickle'])
         print(path)
         grid_svc2 = pickle.load(open(path, 'rb'))

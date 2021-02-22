@@ -10,6 +10,7 @@ cf.go_offline()
 from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 import seaborn as sns
 from pylab import savefig
+np.random.seed(42)
 class ParseDataSet:
 
     def __init__(self, raw_df, y_col_name, scale_data='no', remove_outliers=False, over_sample=False, test_size=0.3,
@@ -37,7 +38,7 @@ class ParseDataSet:
             strat_ifY = self.y
 
         self.XTrain, self.XTest, self.yTrain, self.yTest = model_selection.train_test_split(
-            self.X, self.y, test_size=test_size, random_state=0, stratify = strat_ifY)
+            self.X, self.y, test_size=test_size, random_state=10, stratify = strat_ifY)
 
         #Use this when your set only has categorical features
         if feature_encode:
@@ -104,7 +105,7 @@ class ParseDataSet:
     def getCVSubset(self):
         if self.stratify == True:
             strat_ifY = self.yTrain
-        return model_selection.train_test_split(self.XTrain, self.yTrain, test_size=0.3, stratify= strat_ifY)
+        return model_selection.train_test_split(self.XTrain, self.yTrain, test_size=0.3, stratify= strat_ifY,random_state=10)
 
     def setDataWrangling(self, dr):
         self.DataWrangling = dr

@@ -26,6 +26,8 @@ import time
 import pickle
 import sys
 from datetime import datetime
+
+np.random.seed(42)
 class EstimatedEstimator:
 
     def __init__(self,estimator,name="john_doe", verbose = False):

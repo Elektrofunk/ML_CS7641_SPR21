@@ -2,24 +2,47 @@
 # ML_CS7641_SPR21
 Git Repository
 
+# How to install
+
+using anaconda create a new environment python 3.6 environment
+use the requirements.txt file found on the repository directory to create your envioronment.
+pip install -r requirements.txt
+
 # How to run
 
+To replicate results watch this video tutorial
+https://youtu.be/YIZYxAofG_Y
+
+All the information below can be found on the video tutorial as well.
+
+Remeber you can move the pickle files found inside ./input/wine/test_wine_boosting to ./input/wine/
+Then in main.py you can set the title variable to wine. Then in the nested dictionary you can set it like this then run:
+
+
+![Dictionary_Configuration](/img/DictionaryConfig.PNG)
+
 ![Folder_Struct](/img/FolderStructure.PNG)
+Put the pickle files inside the input directory.
 ![Input_Dir](/img/InputDirectory.PNG)
+Outputs will come out inside the directory which is created with a date.
 ![Output_Dir](/img/OutputDirectory.PNG)
+
+If you want to retrain the models you can use the  wine_and_thyroid_summaries.xlx to create the models.
+![Summaries_File](/img/Summaries.PNG)
 
 note: Files only tested in Windows 10 (my linux box died in the middle of hw  :*())
 Known issues: some older pickle files had an incorrect name (if you did mode.name)
 
 
+
 # References
-DataSetReferences:
-Refernce notebook you used for cleanup. (jupyter)
+DataSetReferences can be found on the report. 
 
 ml_tester.py
 
 Code References:
 
+If I am missing any reference it should be copied inside the code as a comment.
 
 ml_tester.py
 
